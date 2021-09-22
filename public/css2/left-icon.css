@@ -1,0 +1,83 @@
+@font-face {
+  font-family: 'sivdp';
+  src:  url('../fonts/sivdp.eot?dpiylj');
+  src:  url('../fonts/sivdp.eot?dpiylj#iefix') format('embedded-opentype'),
+    url('../fonts/sivdp.ttf?dpiylj') format('truetype'),
+    url('../fonts/sivdp.woff?dpiylj') format('woff'),
+    url('../fonts/sivdp.svg?dpiylj#sivdp') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+.sivdp-icon {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'sivdp' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.sivdp-auditing:before {
+  content: "\e90c";
+}
+.sivdp-users:before {
+  content: "\e90d";
+}
+.sivdp-user:before {
+  content: "\e90e";
+}
+
+.sivdp-admin:before {
+  content: "\e900";
+}
+.sivdp-agenda:before {
+  content: "\e901";
+}
+.sivdp-contacorrente:before {
+  content: "\e902";
+}
+.sivdp-entidades:before {
+  content: "\e903";
+}
+.sivdp-estatisticas:before {
+  content: "\e904";
+}
+.sivdp-fiscalizacao:before {
+  content: "\e905";
+}
+.sivdp-parcelas:before {
+  content: "\e906";
+}
+.sivdp-processos:before {
+  content: "\e907";
+}
+.sivdp-rotulos:before {
+  content: "\e908";
+}
+.sivdp-selos:before {
+  content: "\e909";
+}
+.sivdp-tesouraria:before {
+  content: "\e90a";
+}
+.sivdp-vindima:before {
+  content: "\e90b";
+}
+.sidebar_shift ul li a .sivdp-icon{
+  font-size: 22px;
+  margin-top: 10px;
+  position: relative;
+  top: 5px;
+  color: #2a2a2a
+}
+.sidebar_shift ul li:hover .sivdp-icon{
+  color: #970030;
+}

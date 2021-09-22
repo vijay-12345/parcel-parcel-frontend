@@ -1,0 +1,225 @@
+import React from 'react';
+import services from '../../services';
+import { Link, withRouter } from 'react-router-dom';
+import TitleBar from '../common/title_bar'
+import SearchFilter from '../filters/SearchFilter';
+import Main from '../../Pages/Demo/main';
+import Lang from '../../lang'
+import CountUp from 'react-countup'
+import VindimaModalForm from '../VidimaModule/Modal/CommonSideModalForm';
+import $ from 'jquery'
+import AnaliseEntregasTabModule from './Modal/AnaliseEntregasTabModule';
+import InstructionMessage from './Modal/InstructionMessage';
+import CommonDropdown from './Modal/commonDropdown';
+import ResumoCampanha from './ResumoCampanhaComponent';
+
+
+
+class VidimaReportComponent extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: [],
+            telkikTable: '',
+            totalcount: '0',
+            filterData: [],
+            yearWiseTabComponent: "",
+            columnlist: {},
+            filter: this.props.linkData.filters,
+            tabsComponentsView: null,
+            CalculationTabs: null,
+            popUpForm: ''
+        }
+    }
+
+    componentDidMount() {
+        this.createState();
+    }
+    componentDidUpdate(preProp) {
+        if (preProp.date != this.props.date)
+            this.createState();
+    }
+
+    createState = () => {
+        if (this.props.linkData && this.props.linkData.columnkeyMap) {
+            let columnkeyMap = this.props.linkData.columnkeyMap;
+            let columnlist = Object.keys(columnkeyMap).map(function (key) {
+                return { field: columnkeyMap[key], columnMenuType: 'checkbox' }
+            });
+            this.setState({
+                columnlist,
+                tabsComponentsView: null,
+                CalculationTabs: null,
+                filters: this.props.linkData.filters
+            }, () => {
+                this.getListData()
+            })
+        }
+    }
+
+    createTabCalculation = () => {
+
+        let {data} = this.state
+
+        return (
+            <AnaliseEntregasTabModule data={data} date={new Date()} />
+        )
+    }
+
+    getListData = async () => {
+        let Request = this.props.linkData.listdefaultRequest;
+        let method = this.props.linkData.requestMethod;
+        let link = this.props.linkData.listApilink;
+        Request.year = this.props.year
+        let res = await services.apiCall.requestApi(link, Request, method)
+
+        if (res) {
+            console.log("RESSS",res)
+            if(this.props.linkData.isProcessData){
+              res = this.props.processJson(res,this.props.linkData.TitleBartitle)
+            }
+            this.setState({
+                data: res,
+                filterData: res,
+                totalcount: window.localStorage.getItem('table_total')
+            }, () => this.createTabel())
+        }
+    }
+
+    handleFilter = (data) => {
+        this.setState({
+            filterData: data
+        }, () => this.createTabel())
+    }
+
+    createTabel = (res) => {
+        let actionbuttons = this.props.linkData.actionbuttons;
+        let columnkeyMap = this.props.linkData.columnkeyMap;
+        let data = this.state.filterData;
+        data.map((_row, index) => (
+            Object.keys(columnkeyMap).map(function (key) {
+                _row[columnkeyMap[key]] = _row[key]
+            })
+        ));
+        let telkikTable = <Main date={new Date()} groupfield={this.props.linkData.groupfield} deleteFunc={(id) => this.handleDelete(id)} list={data} actionbuttons={actionbuttons} columnlist={this.state.columnlist} ActionPerform={(action, id) => this.ActionPerform(action, id)} />
+        this.setState({
+            telkikTable: telkikTable
+        })
+    }
+
+    getFilters = (data) => {
+
+    }
+
+    handleDelete = async (id) => {
+        let res = await services.apiCall.requestApi(`/BusEntidadeEstatuto/Delete/${id}`, {}, 'post')
+        if (res) {
+            console.log("res", res)
+            this.createpayload();
+        }
+    }
+
+
+    ActionPerform = (action, row) => {
+        if (action == 'Edit') {
+            console.log("row.codEntidade", row)
+            this.props.history.push({
+                pathname: "/entity_rule_form",
+                state: { entidade_id: row.codEntidade }
+            })
+        } else if (action === 'detailPopUp' || action === 'detailPopUpTwo') {
+            console.log(".....ACTION", action)
+            this.openDetailPopUpForm(row, action);
+        }
+    }
+
+    openDetailPopUpForm = (row, action) => {
+        let popUpForm = ''
+        if (this.props.linkData.popUpTwoTabName && action === 'detailPopUpTwo') {
+            popUpForm = (
+                <VindimaModalForm tab={this.props.linkData.popUpTwoTabName} data={row} date={new Date()} closePopup={() => this.closePopup()} />
+            )
+        } else {
+            popUpForm = (
+                <VindimaModalForm tab={this.props.linkData.popUpTabName} data={row} date={new Date()} closePopup={() => this.closePopup()} />
+            )
+        }
+        this.setState({
+            popUpForm
+        })
+    }
+
+    closePopup = () => {
+        $(".left-popup").trigger('click');
+    }
+
+    render() {
+        console.log("linkData", this.props.linkData);
+        return (
+            <div className="inner-container">
+                <div className="outer-space">
+                    <TitleBar
+                        path={this.props.linkData.TitleBarpath}
+                        title={this.props.linkData.TitleBartitle}
+                        logo={this.props.linkData.TitleBarlogo}
+                        linkData={this.props.linkData}
+                        TitleBarButtonName={this.props.linkData.TitleBarButtonName}
+                        selectedtitelotion={this.props.selectedtitelotion}
+                        selectedMainOption={this.props.selectedMainOption}
+                        changeOption={(mainIndex, subIndex) => this.props.changeOption(mainIndex, subIndex)} optionMenuArray={this.props.optionMenuArray} />
+                    {
+                        this.props.linkData.filters && Object.keys(this.props.linkData.filters).length > 0 &&
+                        <SearchFilter filters={this.props.linkData.filters} handleFilter={(data) => this.handleFilter(data)} data={this.state.data} getFilter={(data) => this.getFilters(data)} />
+                    }
+                    {
+                        this.props.linkData.instructMessage &&
+                        <InstructionMessage message={this.props.linkData.instructMessage} />
+                    }
+                    {
+                        this.props.linkData.YearWiseCalTabRequired && 
+                        this.createTabCalculation()
+                    }
+                    {
+                        this.props.linkData.dropDownKey && this.props.linkData.dropDownKey.length > 0 && 
+                        <CommonDropdown dropDownKey={this.props.linkData.dropDownKey} />
+                    }
+                    {
+                        this.props.linkData.actionbuttons && 
+                        <div className="table-responsive table-section">
+                        <h3> A pesquisa retornou {this.state.totalcount} resultados </h3>
+                        {
+                            this.state.telkikTable
+                        }
+                        </div>
+                    }
+                    {
+                        this.props.linkData.TitleBartitle === "Resumo da campanha" && 
+                        <ResumoCampanha data={this.state.data} />
+                    }
+                </div>
+                {
+                    <div className="modal left-popup" id="vindima-modal">
+                        <div className="modal-dialog modal-lg">
+                            {
+                                this.state.popUpForm
+                            }
+                        </div>
+                    </div>
+                }
+                {
+                    <div className="modal left-popup" id="vindima-Registar">
+                        <div className="modal-dialog modal-lg">
+                            {
+                                <VindimaModalForm tab={this.props.linkData.TitleBarPopUpButton} date={new Date()} closePopup={() => this.closePopup()} />
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        )
+    }
+}
+
+
+export default withRouter(VidimaReportComponent);
